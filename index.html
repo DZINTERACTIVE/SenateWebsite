@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U.S. Senate Legislation Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-branding">
+                <img src="https://www.senate.gov/images/senate-seal.png" alt="U.S. Senate Seal" class="senate-seal">
+                <h1>Office of the Secretary of the Senate</h1>
+                <h2>Senate Legislation Tracking System</h2>
+            </div>
+            
+            <div id="loginSection" class="login-container">
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="login()">Login</button>
+            </div>
+
+            <div id="adminPanel" class="admin-panel" style="display:none;">
+                <h3>Admin Bill Management</h3>
+                <input type="text" id="newBillNumber" placeholder="Bill Number">
+                <input type="text" id="newBillTitle" placeholder="Bill Title">
+                <select id="newBillStatus">
+                    <option value="introduced">Introduced</option>
+                    <option value="committee">In Committee</option>
+                    <option value="floor">On Senate Floor</option>
+                    <option value="passed">Passed</option>
+                    <option value="enacted">Enacted</option>
+                </select>
+                <button onclick="addNewBill()">Add Bill</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <section id="billResults">
+                <div class="results-header">
+                    <h3>Senate Legislative List</h3>
+                    <p id="resultCount">0 bills found</p>
+                </div>
+                <div id="billList">
+                    <!-- Dynamically populated bill results -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>Official Senate Legislative Tracking System</p>
+                <small>For official use and public information</small>
+            </div>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
