@@ -14,57 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
         
         // Populate bill details
-        document.getElementById('billDetailContent').innerHTML = `
-            <section class="bill-details-section">
-                <div class="bill-header">
-                    <div class="bill-header-top">
-                        <div class="bill-number">S. ${bill.number}</div>
-                        <div class="bill-congress">118th Congress</div>
-                    </div>
-                    <h1 class="bill-title">${bill.title}</h1>
-                </div>
-
-                <div class="bill-metadata">
-                    <div class="bill-status-section">
-                        <h2>Bill Status</h2>
-                        <div class="status-details">
-                            <p><strong>Current Status:</strong> ${bill.status || 'Pending'}</p>
-                            <p><strong>Introduced:</strong> ${bill.introducedDate || 'Not available'}</p>
-                            <p><strong>Sponsor:</strong> ${bill.sponsor || 'Not specified'}</p>
-                        </div>
-                    </div>
-
-                    <div class="bill-overview-section">
-                        <h2>Bill Overview</h2>
-                        <div class="overview-details">
-                            <p>This bill was introduced in the ${new Date().getFullYear()} session of the United States Senate.</p>
-                            <p>It is currently in the ${bill.status === 'introduced' ? 'introduction' : 
-                                bill.status === 'committee' ? 'committee review' : 
-                                bill.status === 'floor' ? 'floor debate' : 
-                                bill.status === 'passed' ? 'passed' : 
-                                bill.status === 'enacted' ? 'enacted' : 'pending'} stage.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bill-text-section">
-                    <h2>Full Bill Text</h2>
-                    <div class="bill-text-container">
-                        <textarea id="billFullText" readonly>${bill.fullText || 'Full bill text not available'}</textarea>
-                    </div>
-                </div>
-                
-                ${isAdmin ? `
-                    <div class="bill-actions-section">
-                        <h2>Administrative Actions</h2>
-                        <div class="bill-detail-actions">
-                            <button onclick="editBill(${billIndex})">Edit Bill</button>
-                            <button onclick="deleteBill(${billIndex})">Delete Bill</button>
-                        </div>
-                    </div>
-                ` : ''}
-            </section>
-        `;
+        renderBillDetails(bill, billIndex);
     } else {
         // If no valid bill is found, show an error message
         document.getElementById('billDetailContent').innerHTML = `
@@ -75,7 +25,79 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     }
+
+    // Add cross-tab synchronization
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'senateBills') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const billIndex = urlParams.get('index');
+            const bills = JSON.parse(event.newValue || '[]');
+
+            if (billIndex !== null && billIndex >= 0 && billIndex < bills.length) {
+                const bill = bills[billIndex];
+                // Re-render bill details with updated information
+                renderBillDetails(bill, billIndex);
+            }
+        }
+    });
 });
+
+// Create a separate function for rendering bill details
+function renderBillDetails(bill, index) {
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    
+    document.getElementById('billDetailContent').innerHTML = `
+        <section class="bill-details-section">
+            <div class="bill-header">
+                <div class="bill-header-top">
+                    <div class="bill-number">S. ${bill.number}</div>
+                    <div class="bill-congress">118th Congress</div>
+                </div>
+                <h1 class="bill-title">${bill.title}</h1>
+            </div>
+
+            <div class="bill-metadata">
+                <div class="bill-status-section">
+                    <h2>Bill Status</h2>
+                    <div class="status-details">
+                        <p><strong>Current Status:</strong> ${bill.status || 'Pending'}</p>
+                        <p><strong>Introduced:</strong> ${bill.introducedDate || 'Not available'}</p>
+                        <p><strong>Sponsor:</strong> ${bill.sponsor || 'Not specified'}</p>
+                    </div>
+                </div>
+
+                <div class="bill-overview-section">
+                    <h2>Bill Overview</h2>
+                    <div class="overview-details">
+                        <p>This bill was introduced in the ${new Date().getFullYear()} session of the United States Senate.</p>
+                        <p>It is currently in the ${bill.status === 'introduced' ? 'introduction' : 
+                            bill.status === 'committee' ? 'committee review' : 
+                            bill.status === 'floor' ? 'floor debate' : 
+                            bill.status === 'passed' ? 'passed' : 
+                            bill.status === 'enacted' ? 'enacted' : 'pending'} stage.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bill-text-section">
+                <h2>Full Bill Text</h2>
+                <div class="bill-text-container">
+                    <textarea id="billFullText" readonly>${bill.fullText || 'Full bill text not available'}</textarea>
+                </div>
+            </div>
+            
+            ${isAdmin ? `
+                <div class="bill-actions-section">
+                    <h2>Administrative Actions</h2>
+                    <div class="bill-detail-actions">
+                        <button onclick="editBill(${index})">Edit Bill</button>
+                        <button onclick="deleteBill(${index})">Delete Bill</button>
+                    </div>
+                </div>
+            ` : ''}
+        </section>
+    `;
+}
 
 // Add admin edit and delete functionality
 function editBill(index) {
