@@ -4,6 +4,9 @@ const API_KEY = 'YOUR_CONGRESS_API_KEY'; // Replace with actual API key
 // Use localStorage for persistent bill storage
 function saveBillsToLocalStorage(bills) {
     localStorage.setItem('senateBills', JSON.stringify(bills));
+    
+    // Dispatch a custom event to notify other tabs/windows about bill updates
+    window.dispatchEvent(new Event('billsUpdated'));
 }
 
 function getBillsFromLocalStorage() {
@@ -225,62 +228,8 @@ function cancelEdit(index) {
 }
 
 function openBillDetails(index) {
-    const bill = currentBills[index];
-    const billDetailPage = document.getElementById('billDetailPage');
-    const billDetailContent = document.getElementById('billDetailContent');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    billDetailContent.innerHTML = `
-        <div class="bill-header">
-            <div class="bill-header-top">
-                <div class="bill-number">S. ${bill.number}</div>
-                <div class="bill-congress">118th Congress</div>
-            </div>
-            <h1 class="bill-title">${bill.title}</h1>
-        </div>
-
-        <div class="bill-metadata">
-            <div class="bill-status-section">
-                <h2>Bill Status</h2>
-                <div class="status-details">
-                    <p><strong>Current Status:</strong> ${bill.status || 'Pending'}</p>
-                    <p><strong>Introduced:</strong> ${bill.introducedDate || 'Not available'}</p>
-                    <p><strong>Sponsor:</strong> ${bill.sponsor || 'Not specified'}</p>
-                </div>
-            </div>
-
-            <div class="bill-overview-section">
-                <h2>Bill Overview</h2>
-                <div class="overview-details">
-                    <p>This bill was introduced in the ${new Date().getFullYear()} session of the United States Senate.</p>
-                    <p>It is currently in the ${bill.status === 'introduced' ? 'introduction' : 
-                        bill.status === 'committee' ? 'committee review' : 
-                        bill.status === 'floor' ? 'floor debate' : 
-                        bill.status === 'passed' ? 'passed' : 
-                        bill.status === 'enacted' ? 'enacted' : 'pending'} stage.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bill-text-section">
-            <h2>Full Bill Text</h2>
-            <div class="bill-text-container">
-                <textarea id="billFullText" readonly>${bill.fullText || 'Full bill text not available'}</textarea>
-            </div>
-        </div>
-        
-        ${isAdmin ? `
-            <div class="bill-actions-section">
-                <h2>Administrative Actions</h2>
-                <div class="bill-detail-actions">
-                    <button onclick="editBillFromDetailPage(${index})">Edit Bill</button>
-                    <button onclick="deleteBill(${index})">Delete Bill</button>
-                </div>
-            </div>
-        ` : ''}
-    `;
-    
-    billDetailPage.style.display = 'block';
+    // Navigate to bill details page with index as a parameter
+    window.location.href = `bill-details.html?index=${index}`;
 }
 
 function editBillFromDetailPage(index) {
@@ -379,4 +328,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginSection').style.display = 'flex';
         document.getElementById('adminPanel').style.display = 'none';
     }
+});
+
+// Add a listener for storage events to keep bills synchronized across tabs
+window.addEventListener('storage', (event) => {
+    if (event.key === 'senateBills') {
+        const updatedBills = JSON.parse(event.newValue || '[]');
+        renderBillList(updatedBills);
+    }
+});
+
+// Optional: Add a cross-tab synchronization listener
+window.addEventListener('billsUpdated', () => {
+    const savedBills = localStorage.getItem('senateBills');
+    const bills = savedBills ? JSON.parse(savedBills) : [];
+    renderBillList(bills);
 });
